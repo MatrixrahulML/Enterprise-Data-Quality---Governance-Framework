@@ -113,7 +113,7 @@ unzip the provided copy:
 pip3 install pandas numpy
 
 # Option A: regenerate from scratch (recommended)
-python3 src/01_generate_data.py
+python3 Enterprise-Data-Quality---Governance-Framework/tree/main/dq_framework/src/01_generate_data.py
 
 # Option B: use the provided sample instead
 gunzip -k data/fact_sales.csv.gz
