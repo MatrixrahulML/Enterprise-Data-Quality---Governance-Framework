@@ -1,0 +1,5 @@
+severity,rules_total,rules_failed
+CRITICAL,10,5
+HIGH,10,7
+LOW,1,0
+MEDIUM,8,6

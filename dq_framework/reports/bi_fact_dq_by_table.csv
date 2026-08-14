@@ -1,0 +1,4 @@
+table,rules_total,rules_failed,records_checked,records_failed
+dim_customer,7,5,8064,306
+dim_product,4,3,1200,22
+fact_sales,18,10,500600,378026

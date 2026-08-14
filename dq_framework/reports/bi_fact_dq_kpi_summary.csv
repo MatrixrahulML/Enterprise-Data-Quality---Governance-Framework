@@ -1,0 +1,2 @@
+generated_at,data_quality_score_pct,total_records,failed_records,duplicate_rate_pct,freshness_pct,schema_violations,sample_size_analyzed,scale_factor_applied
+2026-08-14T09:55:48.930545,95.64,18400004,55134,0.1199,29.02,14,500600,36.76

@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-08-14T09:55:48.930545",
+  "data_quality_score_pct": 95.64,
+  "total_records": 18400004,
+  "failed_records": 55134,
+  "duplicate_rate_pct": 0.1199,
+  "freshness_pct": 29.02,
+  "schema_violations": 14,
+  "sample_size_analyzed": 500600,
+  "scale_factor_applied": 36.76
+}

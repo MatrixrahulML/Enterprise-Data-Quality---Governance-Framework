@@ -1,0 +1,30 @@
+rule_id,dimension,description,table,column,severity,records_checked,records_failed,pass_rate,status
+SCHEMA_dim_customer,Schema Validation,"dim_customer schema matches approved contract (missing=[], unexpected=[])",dim_customer,,CRITICAL,9,0,100.0,PASS
+SCHEMA_dim_product,Schema Validation,"dim_product schema matches approved contract (missing=[], unexpected=[])",dim_product,,CRITICAL,8,0,100.0,PASS
+SCHEMA_fact_sales,Schema Validation,"fact_sales schema matches approved contract (missing=[], unexpected=[])",fact_sales,,CRITICAL,12,0,100.0,PASS
+SCHEMA_order_status_domain,Schema Validation,"fact_sales.order_status must be one of ['Completed', 'Shipped', 'Pending', 'Cancelled', 'Returned']",fact_sales,order_status,MEDIUM,500600,14,99.9972,FAIL
+NULL_customer_id,Null Check,fact_sales.customer_id must not be NULL,fact_sales,customer_id,CRITICAL,500600,200,99.96,FAIL
+NULL_fact_sales_product_id,Null Check,fact_sales.product_id must not be NULL,fact_sales,product_id,CRITICAL,500600,0,100.0,PASS
+NULL_fact_sales_order_date,Null Check,fact_sales.order_date must not be NULL,fact_sales,order_date,CRITICAL,500600,0,100.0,PASS
+NULL_dim_customer_email,Null Check,dim_customer.email must not be NULL,dim_customer,email,MEDIUM,8064,81,98.9955,FAIL
+NULL_dim_customer_last_name,Null Check,dim_customer.last_name must not be NULL,dim_customer,last_name,MEDIUM,8064,81,98.9955,FAIL
+NULL_dim_product_category,Null Check,dim_product.category must not be NULL,dim_product,category,HIGH,1200,12,99.0,FAIL
+DUP_fact_sales_full_row,Duplicate Check,fact_sales: no duplicate records on [all columns],fact_sales,,HIGH,500600,559,99.8883,FAIL
+DUP_fact_sales_order_id,Duplicate Check,fact_sales: no duplicate records on [order_id],fact_sales,order_id,CRITICAL,500600,600,99.8801,FAIL
+DUP_dim_customer_id,Duplicate Check,dim_customer: no duplicate records on [customer_id],dim_customer,customer_id,HIGH,8064,64,99.2063,FAIL
+TYPE_fact_sales_quantity,Data Type Check,fact_sales.quantity must be valid numeric,fact_sales,quantity,HIGH,500600,0,100.0,PASS
+TYPE_fact_sales_sales_amount,Data Type Check,fact_sales.sales_amount must be valid numeric,fact_sales,sales_amount,HIGH,500600,0,100.0,PASS
+TYPE_fact_sales_order_date,Data Type Check,fact_sales.order_date must be valid date,fact_sales,order_date,HIGH,500600,0,100.0,PASS
+TYPE_dim_customer_signup_date,Data Type Check,dim_customer.signup_date must be valid date,dim_customer,signup_date,MEDIUM,8064,0,100.0,PASS
+RANGE_sales_amount_nonneg,Range Check,fact_sales.sales_amount must be >= 0,fact_sales,sales_amount,CRITICAL,500600,250,99.9501,FAIL
+RANGE_fact_sales_quantity,Range Check,fact_sales.quantity must be >= 1,fact_sales,quantity,HIGH,500600,9000,98.2022,FAIL
+RANGE_fact_sales_discount_pct,Range Check,fact_sales.discount_pct must be >= 0 and <= 100,fact_sales,discount_pct,MEDIUM,500600,0,100.0,PASS
+RANGE_dim_customer_credit_limit,Range Check,dim_customer.credit_limit must be >= 0,dim_customer,credit_limit,HIGH,8064,40,99.504,FAIL
+RANGE_dim_product_weight_kg,Range Check,dim_product.weight_kg must be >= 0,dim_product,weight_kg,MEDIUM,1200,3,99.75,FAIL
+REFINT_customer_id,Referential Integrity,fact_sales.customer_id must exist in dim_customer.customer_id,fact_sales,customer_id,CRITICAL,500600,250,99.9501,FAIL
+REFINT_product_id,Referential Integrity,fact_sales.product_id must exist in dim_product.product_id,fact_sales,product_id,CRITICAL,500600,200,99.96,FAIL
+BIZ_order_date_not_future,Business Rule,order_date must be <= current date,fact_sales,,HIGH,500600,11605,97.6818,FAIL
+BIZ_positive_margin,Business Rule,unit_price must be >= unit_cost (no negative margin),dim_product,,MEDIUM,1200,7,99.4167,FAIL
+BIZ_credit_limit_nonneg,Business Rule,credit_limit must be >= 0,dim_customer,,HIGH,8064,40,99.504,FAIL
+FRESH_fact_sales_48h_sla,Freshness Check,fact_sales.load_timestamp must be loaded within 48h SLA,fact_sales,load_timestamp,MEDIUM,500600,355348,29.0156,FAIL
+VOLUME_fact_sales_daily_load,Row Count Check,"fact_sales row count must be within [475,570, 525,630]",fact_sales,,LOW,1,0,100.0,PASS

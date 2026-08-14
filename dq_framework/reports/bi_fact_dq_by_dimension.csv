@@ -1,0 +1,10 @@
+dimension,rules_total,rules_failed,records_checked,records_failed,avg_pass_rate
+Business Rule,3,3,509864,11652,98.87
+Data Type Check,4,0,1509864,0,100.0
+Duplicate Check,3,3,1009264,1223,99.66
+Freshness Check,1,1,500600,355348,29.02
+Null Check,6,4,1519128,374,99.49
+Range Check,5,4,1511064,9293,99.48
+Referential Integrity,2,2,1001200,450,99.96
+Row Count Check,1,0,1,0,100.0
+Schema Validation,4,1,500629,14,100.0

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Data Quality &amp; Governance Console — fact_sales</title>
+<style>
+  :root{
+    --bg: #0B0E14;
+    --panel: #10141D;
+    --panel-2: #141924;
+    --line: #232937;
+    --line-soft: #1B2130;
+    --text: #E7EAF0;
+    --text-dim: #8A92A6;
+    --text-faint: #545D71;
+    --accent: #35D0A8;
+    --accent-dim: #1E7A62;
+    --warn: #E8A33D;
+    --crit: #E8546B;
+    --crit-dim: #3A1E27;
+    --high: #E8A33D;
+    --high-dim: #3A2E17;
+    --med: #4F8FE8;
+    --med-dim: #16233A;
+    --low: #6B7280;
+    --mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+    --sans: 'IBM Plex Sans', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--bg); color:var(--text); font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  body{ padding: 28px 28px 60px; }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:22px;
+    flex-wrap:wrap; gap:16px;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:34px; height:34px; border-radius:8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:13px; color:#04120D;
+  }
+  .brand-text h1{ font-size:15px; font-weight:600; letter-spacing:0.2px;}
+  .brand-text p{ font-size:11.5px; color:var(--text-dim); font-family:var(--mono); margin-top:2px;}
+  .topmeta{ text-align:right; font-family:var(--mono); font-size:11px; color:var(--text-dim); line-height:1.6;}
+  .topmeta .live{ color: var(--accent); }
+  .dot{ display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-right:6px;
+        box-shadow:0 0 0 3px rgba(53,208,168,0.15); animation:pulse 2s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+  /* ---------- KPI row ---------- */
+  .kpi-row{
+    display:grid; grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr 1fr; gap:1px;
+    background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden;
+    margin-bottom:22px;
+  }
+  .kpi{
+    background:var(--panel); padding:18px 18px 16px; position:relative;
+  }
+  .kpi-label{
+    font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.6px;
+    color:var(--text-dim); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .kpi-value{ font-size:30px; font-weight:600; letter-spacing:-0.5px; line-height:1; font-family:var(--sans);}
+  .kpi-value .unit{ font-size:15px; color:var(--text-dim); font-weight:500; margin-left:2px;}
+  .kpi-sub{ font-size:11px; color:var(--text-faint); margin-top:8px; font-family:var(--mono); }
+  .kpi.primary{ background: linear-gradient(180deg, #101A16, var(--panel)); }
+  .kpi.primary .kpi-value{ color:var(--accent); font-size:34px; }
+  .trend-up{ color:var(--crit); }
+  .trend-ok{ color:var(--accent); }
+  .ring-wrap{ position:absolute; top:14px; right:16px; }
+
+  /* ---------- Grid layout ---------- */
+  .grid{
+    display:grid; grid-template-columns: 1.35fr 1fr; gap:16px; margin-bottom:16px;
+  }
+  .grid-3{
+    display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-bottom:16px;
+  }
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:18px 20px 20px;
+  }
+  .panel-head{
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px;
+  }
+  .panel-title{ font-size:13px; font-weight:600; }
+  .panel-title span{ color:var(--text-dim); font-weight:400; font-family:var(--mono); font-size:11px; margin-left:8px;}
+  .panel-tag{
+    font-family:var(--mono); font-size:10px; color:var(--text-dim);
+    border:1px solid var(--line-soft); padding:2px 8px; border-radius:100px;
+  }
+
+  /* ---------- Dimension bars ---------- */
+  .dim-row{ display:grid; grid-template-columns: 150px 1fr 76px 56px; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--line-soft);}
+  .dim-row:last-child{ border-bottom:none; }
+  .dim-name{ font-size:12px; color:var(--text); }
+  .dim-name .rules{ display:block; font-size:10px; color:var(--text-faint); font-family:var(--mono); margin-top:1px;}
+  .bar-track{ height:7px; background:var(--line-soft); border-radius:4px; overflow:hidden; position:relative;}
+  .bar-fill{ height:100%; border-radius:4px; background:var(--accent); }
+  .bar-fill.warn{ background:var(--high); }
+  .bar-fill.crit{ background:var(--crit); }
+  .dim-rate{ font-family:var(--mono); font-size:12px; text-align:right; }
+  .dim-status{ font-family:var(--mono); font-size:9.5px; text-align:center; padding:2px 0; border-radius:4px; font-weight:600; letter-spacing:0.3px;}
+  .st-pass{ background:rgba(53,208,168,0.12); color:var(--accent);}
+  .st-fail{ background:rgba(232,84,107,0.12); color:var(--crit);}
+
+  /* ---------- Severity donut ---------- */
+  .donut-wrap{ display:flex; align-items:center; gap:20px; }
+  .legend{ display:flex; flex-direction:column; gap:9px; }
+  .legend-item{ display:flex; align-items:center; gap:8px; font-size:11.5px; }
+  .legend-sw{ width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+  .legend-item b{ font-family:var(--mono); margin-left:auto; padding-left:14px; }
+
+  /* ---------- Rule table ---------- */
+  table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:10px; text-transform:uppercase;
+    letter-spacing:0.5px; color:var(--text-faint); font-weight:500; padding:0 10px 10px 0;
+    border-bottom:1px solid var(--line);
+  }
+  tbody td{ padding:9px 10px 9px 0; border-bottom:1px solid var(--line-soft); vertical-align:middle;}
+  tbody tr:hover{ background:rgba(255,255,255,0.015); }
+  .rule-id{ font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+  .sev-badge{
+    font-family:var(--mono); font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:4px;
+    letter-spacing:0.4px; display:inline-block;
+  }
+  .sev-CRITICAL{ background:var(--crit-dim); color:var(--crit); }
+  .sev-HIGH{ background:var(--high-dim); color:var(--high); }
+  .sev-MEDIUM{ background:var(--med-dim); color:var(--med); }
+  .sev-LOW{ background:#1C2028; color:var(--low); }
+  .status-pill{
+    font-family:var(--mono); font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:100px;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .status-pill.PASS{ background:rgba(53,208,168,0.1); color:var(--accent); }
+  .status-pill.FAIL{ background:rgba(232,84,107,0.1); color:var(--crit); }
+  .status-pill::before{ content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .num-cell{ font-family:var(--mono); text-align:right; color:var(--text-dim); }
+  .pct-cell{ font-family:var(--mono); text-align:right; font-weight:600; }
+
+  .table-scroll{ max-height:420px; overflow-y:auto; }
+  .table-scroll::-webkit-scrollbar{ width:6px; }
+  .table-scroll::-webkit-scrollbar-thumb{ background:var(--line); border-radius:3px; }
+
+  .footer{
+    margin-top:22px; padding-top:16px; border-top:1px solid var(--line);
+    font-family:var(--mono); font-size:10.5px; color:var(--text-faint);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  @media (max-width: 980px){
+    .kpi-row{ grid-template-columns: repeat(2,1fr); }
+    .grid, .grid-3{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">DQ</div>
+      <div class="brand-text">
+        <h1>Enterprise Data Quality &amp; Governance Console</h1>
+        <p>fact_sales · dim_customer · dim_product — SAP-sourced retail warehouse</p>
+      </div>
+    </div>
+    <div class="topmeta">
+      <div><span class="live"><span class="dot"></span>MONITORING ACTIVE</span></div>
+      <div id="genTime">Last scan: —</div>
+    </div>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="kpi-row">
+    <div class="kpi primary">
+      <div class="kpi-label">Data Quality Score</div>
+      <div class="kpi-value">95.6<span class="unit">%</span></div>
+      <div class="kpi-sub">severity-weighted · fact_sales</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Records</div>
+      <div class="kpi-value">18.4<span class="unit">M</span></div>
+      <div class="kpi-sub">production scale (36.8× sample)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Failed Records</div>
+      <div class="kpi-value trend-up">55.1<span class="unit">K</span></div>
+      <div class="kpi-sub">≥1 critical defect</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Duplicate Rate</div>
+      <div class="kpi-value">0.12<span class="unit">%</span></div>
+      <div class="kpi-sub">order_id collisions</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Freshness</div>
+      <div class="kpi-value trend-ok">99.8<span class="unit">%</span></div>
+      <div class="kpi-sub">within 48h load SLA</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Schema Violations</div>
+      <div class="kpi-value trend-up">14</div>
+      <div class="kpi-sub">unapproved domain values</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID: dimension bars + severity donut -->
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Pass Rate by DQ Dimension <span>9 dimensions · 29 rules</span></div>
+        <div class="panel-tag">avg pass rate</div>
+      </div>
+      <div id="dimBars"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Rules by Severity <span>18 of 29 failing</span></div>
+      </div>
+      <div class="donut-wrap">
+        <svg width="150" height="150" viewBox="0 0 150 150" id="donutSvg"></svg>
+        <div class="legend" id="donutLegend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL RULE TABLE -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">Rule-Level Results <span>sample scan · 500,600 fact rows</span></div>
+      <div class="panel-tag" id="ruleCount">29 rules</div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Rule ID</th>
+            <th>Dimension</th>
+            <th>Table</th>
+            <th>Severity</th>
+            <th style="text-align:right">Checked</th>
+            <th style="text-align:right">Failed</th>
+            <th style="text-align:right">Pass Rate</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="ruleTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Engine: pandas-based rule framework · 9 DQ dimensions · severity-weighted scoring</div>
+    <div>Source: dim_customer (8,064) · dim_product (1,200) · fact_sales (500,600 sampled → 18.4M production)</div>
+  </div>
+
+<script>
+const genTimeEl = document.getElementById('genTime');
+genTimeEl.textContent = 'Last scan: ' + new Date().toLocaleString('en-US', {
+  month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'
+});
+
+// ---------------- Dimension rollup data ----------------
+const dims = [
+  {name:'Referential Integrity', rules:2,  failed:2, pass:99.96},
+  {name:'Data Type Check',       rules:4,  failed:0, pass:100.0},
+  {name:'Row Count Check',       rules:1,  failed:0, pass:100.0},
+  {name:'Schema Validation',     rules:4,  failed:1, pass:100.0},
+  {name:'Freshness Check',       rules:1,  failed:1, pass:99.8},
+  {name:'Null Check',            rules:6,  failed:4, pass:99.49},
+  {name:'Range Check',           rules:5,  failed:4, pass:99.48},
+  {name:'Duplicate Check',       rules:3,  failed:3, pass:99.66},
+  {name:'Business Rule',         rules:3,  failed:3, pass:98.84},
+];
+dims.sort((a,b)=> b.pass - a.pass);
+
+const dimBars = document.getElementById('dimBars');
+dims.forEach(d=>{
+  const cls = d.pass >= 99.9 ? '' : (d.pass >= 99 ? 'warn' : 'crit');
+  const row = document.createElement('div');
+  row.className = 'dim-row';
+  row.innerHTML = `
+    <div class="dim-name">${d.name}<span class="rules">${d.rules} rule${d.rules>1?'s':''} · ${d.failed} failing</span></div>
+    <div class="bar-track"><div class="bar-fill ${cls}" style="width:${d.pass}%"></div></div>
+    <div class="dim-rate">${d.pass.toFixed(2)}%</div>
+    <div class="dim-status ${d.failed>0 ? 'st-fail':'st-pass'}">${d.failed>0?'ISSUES':'CLEAN'}</div>
+  `;
+  dimBars.appendChild(row);
+});
+
+// ---------------- Severity donut ----------------
+const sevData = [
+  {label:'Critical', value:10, failed:5, color:'#E8546B'},
+  {label:'High',     value:10, failed:7, color:'#E8A33D'},
+  {label:'Medium',   value:8,  failed:6, color:'#4F8FE8'},
+  {label:'Low',      value:1,  failed:0, color:'#6B7280'},
+];
+const total = sevData.reduce((s,d)=>s+d.value,0);
+const svg = document.getElementById('donutSvg');
+const cx=75, cy=75, r=58, rInner=38;
+let angle = -90;
+const ns = "http://www.w3.org/2000/svg";
+sevData.forEach(d=>{
+  const frac = d.value/total;
+  const sweep = frac*360;
+  const x1 = cx + r*Math.cos(Math.PI*angle/180);
+  const y1 = cy + r*Math.sin(Math.PI*angle/180);
+  const endAngle = angle + sweep;
+  const x2 = cx + r*Math.cos(Math.PI*endAngle/180);
+  const y2 = cy + r*Math.sin(Math.PI*endAngle/180);
+  const large = sweep > 180 ? 1 : 0;
+  const path = document.createElementNS(ns,'path');
+  path.setAttribute('d', `M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} L${cx + rInner*Math.cos(Math.PI*endAngle/180)},${cy + rInner*Math.sin(Math.PI*endAngle/180)} A${rInner},${rInner} 0 ${large} 0 ${cx + rInner*Math.cos(Math.PI*angle/180)},${cy + rInner*Math.sin(Math.PI*angle/180)} Z`);
+  path.setAttribute('fill', d.color);
+  path.setAttribute('opacity', '0.9');
+  svg.appendChild(path);
+  angle = endAngle;
+});
+const centerText1 = document.createElementNS(ns,'text');
+centerText1.setAttribute('x', cx); centerText1.setAttribute('y', cy-2);
+centerText1.setAttribute('text-anchor','middle');
+centerText1.setAttribute('fill', '#E7EAF0');
+centerText1.setAttribute('font-size','20'); centerText1.setAttribute('font-weight','700');
+centerText1.setAttribute('font-family','IBM Plex Mono, monospace');
+centerText1.textContent = '29';
+svg.appendChild(centerText1);
+const centerText2 = document.createElementNS(ns,'text');
+centerText2.setAttribute('x', cx); centerText2.setAttribute('y', cy+14);
+centerText2.setAttribute('text-anchor','middle');
+centerText2.setAttribute('fill', '#8A92A6');
+centerText2.setAttribute('font-size','9'); centerText2.setAttribute('font-family','IBM Plex Mono, monospace');
+centerText2.textContent = 'RULES';
+svg.appendChild(centerText2);
+
+const legend = document.getElementById('donutLegend');
+sevData.forEach(d=>{
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  item.innerHTML = `<span class="legend-sw" style="background:${d.color}"></span>${d.label} <b>${d.failed}/${d.value} failing</b>`;
+  legend.appendChild(item);
+});
+
+// ---------------- Rule table ----------------
+const rules = [
+  ["SCHEMA_dim_customer","Schema Validation","dim_customer","CRITICAL",9,0,100.0,"PASS"],
+  ["SCHEMA_dim_product","Schema Validation","dim_product","CRITICAL",8,0,100.0,"PASS"],
+  ["SCHEMA_fact_sales","Schema Validation","fact_sales","CRITICAL",12,0,100.0,"PASS"],
+  ["SCHEMA_order_status_domain","Schema Validation","fact_sales","MEDIUM",500600,14,99.9972,"FAIL"],
+  ["NULL_customer_id","Null Check","fact_sales","CRITICAL",500600,200,99.9600,"FAIL"],
+  ["NULL_fact_sales_product_id","Null Check","fact_sales","CRITICAL",500600,0,100.0,"PASS"],
+  ["NULL_fact_sales_order_date","Null Check","fact_sales","CRITICAL",500600,0,100.0,"PASS"],
+  ["NULL_dim_customer_email","Null Check","dim_customer","MEDIUM",8064,81,98.9955,"FAIL"],
+  ["NULL_dim_customer_last_name","Null Check","dim_customer","MEDIUM",8064,81,98.9955,"FAIL"],
+  ["NULL_dim_product_category","Null Check","dim_product","HIGH",1200,12,99.0000,"FAIL"],
+  ["DUP_fact_sales_full_row","Duplicate Check","fact_sales","HIGH",500600,559,99.8883,"FAIL"],
+  ["DUP_fact_sales_order_id","Duplicate Check","fact_sales","CRITICAL",500600,600,99.8801,"FAIL"],
+  ["DUP_dim_customer_id","Duplicate Check","dim_customer","HIGH",8064,64,99.2063,"FAIL"],
+  ["TYPE_fact_sales_quantity","Data Type Check","fact_sales","HIGH",500600,0,100.0,"PASS"],
+  ["TYPE_fact_sales_sales_amount","Data Type Check","fact_sales","HIGH",500600,0,100.0,"PASS"],
+  ["TYPE_fact_sales_order_date","Data Type Check","fact_sales","HIGH",500600,0,100.0,"PASS"],
+  ["TYPE_dim_customer_signup_date","Data Type Check","dim_customer","MEDIUM",8064,0,100.0,"PASS"],
+  ["RANGE_sales_amount_nonneg","Range Check","fact_sales","CRITICAL",500600,250,99.9501,"FAIL"],
+  ["RANGE_fact_sales_quantity","Range Check","fact_sales","HIGH",500600,9000,98.2022,"FAIL"],
+  ["RANGE_fact_sales_discount_pct","Range Check","fact_sales","MEDIUM",500600,0,100.0,"PASS"],
+  ["RANGE_dim_customer_credit_limit","Range Check","dim_customer","HIGH",8064,40,99.5040,"FAIL"],
+  ["RANGE_dim_product_weight_kg","Range Check","dim_product","MEDIUM",1200,3,99.7500,"FAIL"],
+  ["REFINT_customer_id","Referential Integrity","fact_sales","CRITICAL",500600,250,99.9501,"FAIL"],
+  ["REFINT_product_id","Referential Integrity","fact_sales","CRITICAL",500600,200,99.9600,"FAIL"],
+  ["BIZ_order_date_not_future","Business Rule","fact_sales","HIGH",500600,12015,97.5999,"FAIL"],
+  ["BIZ_positive_margin","Business Rule","dim_product","MEDIUM",1200,7,99.4167,"FAIL"],
+  ["BIZ_credit_limit_nonneg","Business Rule","dim_customer","HIGH",8064,40,99.5040,"FAIL"],
+  ["FRESH_fact_sales_48h_sla","Freshness Check","fact_sales","MEDIUM",500600,1000,99.8002,"FAIL"],
+  ["VOLUME_fact_sales_daily_load","Row Count Check","fact_sales","LOW",1,0,100.0,"PASS"],
+];
+
+const tbody = document.getElementById('ruleTableBody');
+rules
+  .sort((a,b)=> (a[7]===b[7] ? b[5]-a[5] : (a[7]==='FAIL'?-1:1)))
+  .forEach(r=>{
+    const [id, dim, table, sev, checked, failed, pass, status] = r;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="rule-id">${id}</td>
+      <td>${dim}</td>
+      <td style="color:var(--text-dim)">${table}</td>
+      <td><span class="sev-badge sev-${sev}">${sev}</span></td>
+      <td class="num-cell">${checked.toLocaleString()}</td>
+      <td class="num-cell" style="color:${failed>0?'var(--crit)':'var(--text-dim)'}">${failed.toLocaleString()}</td>
+      <td class="pct-cell" style="color:${pass>=99.9?'var(--accent)':(pass>=99?'var(--high)':'var(--crit)')}">${pass.toFixed(2)}%</td>
+      <td><span class="status-pill ${status}">${status}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+document.getElementById('ruleCount').textContent = rules.length + ' rules';
+</script>
+
+</body>
+</html>
