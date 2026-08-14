@@ -110,15 +110,19 @@ to be dropped straight into **Power BI** or **Tableau** as a data source:
 unzip the provided copy:
 
 ```bash
+cd ~/Downloads
+
+git clone https://github.com/MatrixrahulML/Enterprise-Data-Quality---Governance-Framework.git
+
+cd Enterprise-Data-Quality---Governance-Framework/dq_framework
+
+python3 -m venv venv
+source venv/bin/activate
+
 pip3 install pandas numpy
 
-# Option A: regenerate from scratch (recommended)
-python3 Enterprise-Data-Quality---Governance-Framework/tree/main/dq_framework/src/01_generate_data.py
-
-# Option B: use the provided sample instead
-gunzip -k data/fact_sales.csv.gz
-
+python3 src/01_generate_data.py
 python3 src/03_run_checks.py
 python3 src/04_build_dashboard_data.py
-open reports/dq_dashboard.html   # or just double-click it
-```
+
+open reports/dq_dashboard.html
